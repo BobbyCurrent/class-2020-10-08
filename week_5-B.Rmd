@@ -117,12 +117,37 @@ Finally, use `geom_density` to plot the distributions of two states of your choi
 
 **You should do this in steps. First, create the `draws` object. Second, try to successfully change the format of the dataset. Don't do everything all at once in one long section with many pipes!!**
 
+```{r sc1}
+draws <-
+simulate_election(100) %>%
+  pivot_longer(cols = 1:51, names_to = "state", values_to = "trump_share") %>%
+  group_by(state) %>%
+  filter(state == "Pennsylvania" | state == "Florida") %>%
+  ggplot(aes(x = trump_share)) +
+  geom_density() +
+  facet_wrap(~state) +
+  labs(x = "Trump Vote Percentage", y = "Percentage", title = "Votes in 2020 Swing States")
+
+draws
+```
+
+
 
   
 ## Scene 2: Estimating Results from a Single State
 
 In Scene 1, we called this election simulation function a single time. Now, create a new `tibble` called `elections` with one column, `simulations`, that simulates one election in each of 1000 rows. Finally, use this `elections` object to create a column called `pa_win` that uses a `map` function to figure out whether Trump wins Pennsylvania in each of these simulated elections. Once you've verified that works, take the average of the `pa_win` column to see how likely Trump is to win Pennsylvania across all of these simulations.
 
+```{r sc2}
+elections <-
+  tibble(simulations = map(rep(1, 1000), simulate_election)) %>%
+   mutate(pa_win = map_lgl(simulations, ~.$Pennsylvania > 50)) %>%
+  summarize(pa_avg = mean(pa_win))
+  
+  # mutate(pa_win = map_lgl(simulations, ~ifelse(.[[39]][1] > 50, TRUE, FALSE)))
+
+
+```
 
 
 ## Scene 3: Do it again!
